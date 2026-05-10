@@ -1,0 +1,18 @@
+# Convertly JavaScript SDK
+
+```ts
+import { Convertly } from "@convertly/sdk";
+
+const convertly = new Convertly({ apiKey: process.env.CONVERTLY_API_KEY! });
+
+const job = await convertly.media.trim({
+  sourceUrl: "https://cdn.example.com/video.mp4",
+  start: 10,
+  duration: 8,
+  async: true,
+});
+
+const result = await convertly.jobs.wait(job.jobId);
+```
+
+The SDK supports multipart uploads, `sourceUrl`, async jobs, and media tool endpoints.

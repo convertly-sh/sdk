@@ -1,0 +1,33 @@
+{
+  "name": "@convertly/sdk",
+  "version": "0.1.0",
+  "description": "Official JavaScript and TypeScript SDK for the Convertly media API.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "convertly",
+    "media",
+    "image",
+    "video",
+    "compression",
+    "api"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
