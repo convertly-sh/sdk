@@ -74,6 +74,11 @@ export class Convertly {
             gif: (options) => this.mediaTool("gif", options),
             storyboard: (options) => this.mediaTool("storyboard", options),
             transform: (options) => this.mediaTool("transform", options),
+            signedTransform: (options) => this.request("/api/media/signed-transform", {
+                method: "POST",
+                body: JSON.stringify(options),
+                headers: { "Content-Type": "application/json" },
+            }),
         };
         this.jobs = {
             get: (jobId) => this.request(`/api/jobs/${encodeURIComponent(jobId)}`),

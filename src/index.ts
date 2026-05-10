@@ -38,6 +38,17 @@ export type MediaToolOptions = ConvertlyFileInput & {
   [key: string]: unknown;
 };
 
+export type SignedTransformOptions = {
+  sourceUrl: string;
+  preset?: "ecommerce" | "avatar" | "blog-hero" | "social-preview";
+  width?: number;
+  height?: number;
+  fit?: "cover" | "contain" | "fill" | "inside" | "outside";
+  format?: "jpg" | "png" | "webp" | "avif";
+  quality?: number;
+  expiresIn?: number;
+};
+
 export type WaitOptions = {
   intervalMs?: number;
   timeoutMs?: number;
@@ -139,6 +150,12 @@ export class Convertly {
     gif: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("gif", options),
     storyboard: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("storyboard", options),
     transform: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("transform", options),
+    signedTransform: <T = { url: string; expiresAt: string }>(options: SignedTransformOptions) =>
+      this.request<T>("/api/media/signed-transform", {
+        method: "POST",
+        body: JSON.stringify(options),
+        headers: { "Content-Type": "application/json" },
+      }),
   };
 
   jobs = {
