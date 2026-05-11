@@ -43,6 +43,12 @@ export type SignedTransformOptions = {
     quality?: number;
     expiresIn?: number;
 };
+export type TransferOptions = {
+    sourceUrl: string;
+    destination?: "download" | "convertly-storage";
+    filename?: string;
+    contentType?: string;
+};
 export type WaitOptions = {
     intervalMs?: number;
     timeoutMs?: number;
@@ -74,6 +80,7 @@ export declare class Convertly {
         gif: <T = unknown>(options: MediaToolOptions) => Promise<T>;
         storyboard: <T = unknown>(options: MediaToolOptions) => Promise<T>;
         transform: <T = unknown>(options: MediaToolOptions) => Promise<T>;
+        transfer: <T = ArrayBuffer>(options: TransferOptions) => Promise<T>;
         signedTransform: <T = {
             url: string;
             expiresAt: string;
@@ -91,6 +98,7 @@ export declare class Convertly {
     };
     private convert;
     private compress;
+    private transfer;
     private mediaTool;
     private waitForJob;
     private request;

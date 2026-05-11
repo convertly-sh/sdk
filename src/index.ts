@@ -50,6 +50,13 @@ export type SignedTransformOptions = {
   expiresIn?: number;
 };
 
+export type TransferOptions = {
+  sourceUrl: string;
+  destination?: "download" | "convertly-storage";
+  filename?: string;
+  contentType?: string;
+};
+
 export type WaitOptions = {
   intervalMs?: number;
   timeoutMs?: number;
@@ -151,6 +158,7 @@ export class Convertly {
     gif: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("gif", options),
     storyboard: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("storyboard", options),
     transform: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("transform", options),
+    transfer: <T = ArrayBuffer>(options: TransferOptions) => this.transfer<T>(options),
     signedTransform: <T = { url: string; expiresAt: string }>(options: SignedTransformOptions) =>
       this.request<T>("/api/media/signed-transform", {
         method: "POST",
@@ -192,6 +200,30 @@ export class Convertly {
     appendPrimitive(form, "stripMetadata", options.stripMetadata);
     appendPrimitive(form, "saveToStorage", options.saveToStorage);
     return this.request<T>("/api/compress", { method: "POST", body: form });
+  }
+
+  private async transfer<T>(options: TransferOptions) {
+    const response = await this.fetcher(`${this.baseUrl}/api/transfer`, {
+      method: "POST",
+      body: JSON.stringify(options),
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      const body = contentType.includes("application/json") ? await response.json() : await response.text();
+      const message = typeof body === "object" && body && "error" in body ? String(body.error) : response.statusText;
+      throw new ConvertlyError(message, response.status, body);
+    }
+
+    if ((options.destination ?? "download") === "download") {
+      return (await response.arrayBuffer()) as T;
+    }
+
+    return (await response.json()) as T;
   }
 
   private async mediaTool<T>(tool: string, options: MediaToolOptions) {

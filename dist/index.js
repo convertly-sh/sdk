@@ -74,6 +74,7 @@ export class Convertly {
             gif: (options) => this.mediaTool("gif", options),
             storyboard: (options) => this.mediaTool("storyboard", options),
             transform: (options) => this.mediaTool("transform", options),
+            transfer: (options) => this.transfer(options),
             signedTransform: (options) => this.request("/api/media/signed-transform", {
                 method: "POST",
                 body: JSON.stringify(options),
@@ -115,6 +116,26 @@ export class Convertly {
         appendPrimitive(form, "stripMetadata", options.stripMetadata);
         appendPrimitive(form, "saveToStorage", options.saveToStorage);
         return this.request("/api/compress", { method: "POST", body: form });
+    }
+    async transfer(options) {
+        const response = await this.fetcher(`${this.baseUrl}/api/transfer`, {
+            method: "POST",
+            body: JSON.stringify(options),
+            headers: {
+                Authorization: `Bearer ${this.apiKey}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!response.ok) {
+            const contentType = response.headers.get("content-type") ?? "";
+            const body = contentType.includes("application/json") ? await response.json() : await response.text();
+            const message = typeof body === "object" && body && "error" in body ? String(body.error) : response.statusText;
+            throw new ConvertlyError(message, response.status, body);
+        }
+        if ((options.destination ?? "download") === "download") {
+            return (await response.arrayBuffer());
+        }
+        return (await response.json());
     }
     async mediaTool(tool, options) {
         const form = new FormData();
