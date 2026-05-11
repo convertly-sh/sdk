@@ -16,3 +16,4 @@ const result = await convertly.jobs.wait(job.jobId);
 ```
 
 The SDK supports multipart uploads, `sourceUrl`, async jobs, and media tool endpoints.
+Raster-to-SVG conversion preserves color by default; pass `mono: true` to `media.convert` only for monochrome tracing.

@@ -101,6 +101,7 @@ export class Convertly {
         appendPrimitive(form, "resizeWidth", options.resizeWidth);
         appendPrimitive(form, "resizeHeight", options.resizeHeight);
         appendPrimitive(form, "autoOrient", options.autoOrient);
+        appendPrimitive(form, "mono", options.mono);
         appendPrimitive(form, "saveToStorage", options.saveToStorage);
         return this.request("/api/convert", { method: "POST", body: form });
     }

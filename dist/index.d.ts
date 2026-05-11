@@ -17,6 +17,7 @@ export type ConvertOptions = ConvertlyFileInput & {
     resizeWidth?: number;
     resizeHeight?: number;
     autoOrient?: boolean;
+    mono?: boolean;
     saveToStorage?: boolean;
 };
 export type CompressOptions = ConvertlyFileInput & {
