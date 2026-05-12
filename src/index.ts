@@ -55,6 +55,7 @@ export type TransferOptions = {
   destination?: "download" | "convertly-storage";
   filename?: string;
   contentType?: string;
+  async?: boolean;
   extract?: boolean;
   extractOptions?: {
     preservePaths?: boolean;
