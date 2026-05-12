@@ -51,10 +51,36 @@ export type SignedTransformOptions = {
 };
 
 export type TransferOptions = {
-  sourceUrl: string;
+  sourceUrl?: string;
   destination?: "download" | "convertly-storage";
   filename?: string;
   contentType?: string;
+  extract?: boolean;
+  extractOptions?: {
+    preservePaths?: boolean;
+    folderName?: string;
+    targetFolderId?: string | null;
+    maxFiles?: number;
+    maxEntryBytes?: number;
+    maxTotalBytes?: number;
+  };
+  cloudSource?: {
+    provider: "google-drive" | "s3" | "dropbox";
+    fileId?: string;
+    folderId?: string;
+    bucket?: string;
+    key?: string;
+    prefix?: string;
+    region?: string;
+    endpoint?: string;
+    accessKeyId?: string;
+    secretAccessKey?: string;
+    sessionToken?: string;
+    accessToken?: string;
+    path?: string;
+    recursive?: boolean;
+    targetFolderId?: string | null;
+  };
 };
 
 export type WaitOptions = {
