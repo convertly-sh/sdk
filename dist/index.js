@@ -74,6 +74,7 @@ export class Convertly {
             gif: (options) => this.mediaTool("gif", options),
             storyboard: (options) => this.mediaTool("storyboard", options),
             transform: (options) => this.mediaTool("transform", options),
+            removeBackground: (options) => this.mediaTool("remove-background", options),
             transfer: (options) => this.transfer(options),
             signedTransform: (options) => this.request("/api/media/signed-transform", {
                 method: "POST",

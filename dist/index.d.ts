@@ -107,6 +107,7 @@ export declare class Convertly {
         gif: <T = unknown>(options: MediaToolOptions) => Promise<T>;
         storyboard: <T = unknown>(options: MediaToolOptions) => Promise<T>;
         transform: <T = unknown>(options: MediaToolOptions) => Promise<T>;
+        removeBackground: <T = unknown>(options: MediaToolOptions) => Promise<T>;
         transfer: <T = ArrayBuffer>(options: TransferOptions) => Promise<T>;
         signedTransform: <T = {
             url: string;

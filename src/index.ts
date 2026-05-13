@@ -185,6 +185,7 @@ export class Convertly {
     gif: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("gif", options),
     storyboard: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("storyboard", options),
     transform: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("transform", options),
+    removeBackground: <T = unknown>(options: MediaToolOptions) => this.mediaTool<T>("remove-background", options),
     transfer: <T = ArrayBuffer>(options: TransferOptions) => this.transfer<T>(options),
     signedTransform: <T = { url: string; expiresAt: string }>(options: SignedTransformOptions) =>
       this.request<T>("/api/media/signed-transform", {
