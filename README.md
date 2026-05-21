@@ -1,7 +1,7 @@
 # Convertly JavaScript SDK
 
 ```ts
-import { Convertly } from "@convertly/sdk";
+import { Convertly } from "@convertly-sh/sdk";
 
 const convertly = new Convertly({ apiKey: process.env.CONVERTLY_API_KEY! });
 

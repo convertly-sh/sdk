@@ -1,5 +1,5 @@
 {
-  "name": "@convertly/sdk",
+  "name": "@convertly-sh/sdk",
   "version": "0.1.0",
   "description": "Official JavaScript and TypeScript SDK for the Convertly media API.",
   "type": "module",
