@@ -88,6 +88,45 @@ export class Convertly {
             cancel: (jobId) => this.request(`/api/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" }),
             wait: (jobId, options = {}) => this.waitForJob(jobId, options),
         };
+        this.video = {
+            streams: {
+                create: (options) => this.request("/api/video/streams", {
+                    method: "POST",
+                    body: JSON.stringify(options),
+                    headers: { "Content-Type": "application/json" },
+                }),
+                list: (params = {}) => {
+                    const query = new URLSearchParams();
+                    if (params.limit)
+                        query.set("limit", String(params.limit));
+                    if (params.offset)
+                        query.set("offset", String(params.offset));
+                    if (params.status)
+                        query.set("status", params.status);
+                    return this.request(`/api/video/streams${query.size ? `?${query}` : ""}`);
+                },
+                get: (id) => this.request(`/api/video/streams/${encodeURIComponent(id)}`),
+                delete: (id) => this.request(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
+            },
+        };
+        this.live = {
+            inputs: {
+                create: (options = {}) => this.request("/api/live/inputs", {
+                    method: "POST",
+                    body: JSON.stringify(options),
+                    headers: { "Content-Type": "application/json" },
+                }),
+                list: () => this.request("/api/live/inputs"),
+                get: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`),
+                update: (id, options) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`, {
+                    method: "PATCH",
+                    body: JSON.stringify(options),
+                    headers: { "Content-Type": "application/json" },
+                }),
+                rotateKey: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}/rotate-key`, { method: "POST" }),
+                delete: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`, { method: "DELETE" }),
+            },
+        };
         if (!options.apiKey)
             throw new Error("Convertly API key is required.");
         this.apiKey = options.apiKey;
@@ -180,4 +219,68 @@ export class Convertly {
 }
 export function createConvertly(options) {
     return new Convertly(options);
+}
+function randomSessionId() {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+        return crypto.randomUUID();
+    return `cvly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+}
+export class ConvertlyPlayer {
+    constructor(options) {
+        this.sessionId = randomSessionId();
+        this.lastProgressAt = 0;
+        this.video = options.video;
+        this.playbackId = options.playbackId;
+        this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
+        this.fetcher = options.fetch ?? fetch;
+        this.analytics = options.analytics !== false;
+        if (options.posterUrl)
+            this.video.poster = options.posterUrl;
+        if (options.manifestUrl)
+            this.video.src = options.manifestUrl;
+        for (const caption of options.captions ?? []) {
+            const track = document.createElement("track");
+            track.kind = caption.kind ?? "subtitles";
+            track.label = caption.label;
+            track.srclang = caption.language;
+            track.src = caption.url;
+            this.video.append(track);
+        }
+        this.bindAnalytics();
+    }
+    destroy() {
+        this.video.removeAttribute("src");
+        this.video.load();
+    }
+    bindAnalytics() {
+        if (!this.analytics)
+            return;
+        const send = (event) => {
+            void this.fetcher(`${this.baseUrl}/api/video/playback-events`, {
+                method: "POST",
+                keepalive: true,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    playbackId: this.playbackId,
+                    sessionId: this.sessionId,
+                    event,
+                    currentTime: Number.isFinite(this.video.currentTime) ? this.video.currentTime : undefined,
+                    duration: Number.isFinite(this.video.duration) ? this.video.duration : undefined,
+                }),
+            }).catch(() => { });
+        };
+        this.video.addEventListener("loadedmetadata", () => send("ready"));
+        this.video.addEventListener("play", () => send("play"));
+        this.video.addEventListener("pause", () => send("pause"));
+        this.video.addEventListener("ended", () => send("ended"));
+        this.video.addEventListener("seeked", () => send("seeked"));
+        this.video.addEventListener("error", () => send("error"));
+        this.video.addEventListener("timeupdate", () => {
+            const now = Date.now();
+            if (now - this.lastProgressAt < 15000)
+                return;
+            this.lastProgressAt = now;
+            send("timeupdate");
+        });
+    }
 }

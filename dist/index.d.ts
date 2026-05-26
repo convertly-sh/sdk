@@ -43,6 +43,58 @@ export type SignedTransformOptions = {
     quality?: number;
     expiresIn?: number;
 };
+export type VideoCaptionTrackInput = {
+    label: string;
+    language: string;
+    kind?: "subtitles" | "captions";
+    content: string;
+};
+export type VideoStreamOptions = {
+    sourceFileId: string;
+    profile?: "basic" | "standard" | "hd" | "source_max" | "custom";
+    packageFormats?: Array<"hls" | "dash">;
+    renditions?: Array<{
+        height: number;
+        bitrate: number;
+        audioBitrate?: number;
+    }>;
+    segmentDuration?: number;
+    access?: "public" | "signed";
+    tokenTtlSeconds?: number;
+    allowedDomains?: string[];
+    captions?: VideoCaptionTrackInput[];
+    clip?: {
+        start?: number;
+        end?: number;
+        duration?: number;
+        mode?: "accurate" | "fast";
+    } | null;
+};
+export type LiveInputOptions = {
+    name?: string;
+    recordMode?: "off" | "automatic";
+    reconnectWindowSeconds?: number;
+    requireSignedPlayback?: boolean;
+    allowedDomains?: string[];
+};
+export type LiveInputUpdateOptions = Partial<LiveInputOptions> & {
+    enabled?: boolean;
+};
+export type ConvertlyPlayerOptions = {
+    video: HTMLVideoElement;
+    playbackId: string;
+    manifestUrl?: string;
+    posterUrl?: string | null;
+    captions?: Array<{
+        url: string;
+        label: string;
+        language: string;
+        kind?: "subtitles" | "captions";
+    }>;
+    baseUrl?: string;
+    fetch?: typeof fetch;
+    analytics?: boolean;
+};
 export type TransferOptions = {
     sourceUrl?: string;
     destination?: "download" | "convertly-storage";
@@ -124,6 +176,28 @@ export declare class Convertly {
             status?: string;
         }>(jobId: string, options?: WaitOptions) => Promise<T>;
     };
+    video: {
+        streams: {
+            create: <T = unknown>(options: VideoStreamOptions) => Promise<T>;
+            list: <T = unknown>(params?: {
+                limit?: number;
+                offset?: number;
+                status?: string;
+            }) => Promise<T>;
+            get: <T = unknown>(id: string) => Promise<T>;
+            delete: <T = unknown>(id: string) => Promise<T>;
+        };
+    };
+    live: {
+        inputs: {
+            create: <T = unknown>(options?: LiveInputOptions) => Promise<T>;
+            list: <T = unknown>() => Promise<T>;
+            get: <T = unknown>(id: string) => Promise<T>;
+            update: <T = unknown>(id: string, options: LiveInputUpdateOptions) => Promise<T>;
+            rotateKey: <T = unknown>(id: string) => Promise<T>;
+            delete: <T = unknown>(id: string) => Promise<T>;
+        };
+    };
     private convert;
     private compress;
     private transfer;
@@ -132,3 +206,15 @@ export declare class Convertly {
     private request;
 }
 export declare function createConvertly(options: ConvertlyClientOptions): Convertly;
+export declare class ConvertlyPlayer {
+    private readonly video;
+    private readonly playbackId;
+    private readonly baseUrl;
+    private readonly fetcher;
+    private readonly analytics;
+    private readonly sessionId;
+    private lastProgressAt;
+    constructor(options: ConvertlyPlayerOptions);
+    destroy(): void;
+    private bindAnalytics;
+}

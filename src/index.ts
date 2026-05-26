@@ -50,6 +50,54 @@ export type SignedTransformOptions = {
   expiresIn?: number;
 };
 
+export type VideoCaptionTrackInput = {
+  label: string;
+  language: string;
+  kind?: "subtitles" | "captions";
+  content: string;
+};
+
+export type VideoStreamOptions = {
+  sourceFileId: string;
+  profile?: "basic" | "standard" | "hd" | "source_max" | "custom";
+  packageFormats?: Array<"hls" | "dash">;
+  renditions?: Array<{ height: number; bitrate: number; audioBitrate?: number }>;
+  segmentDuration?: number;
+  access?: "public" | "signed";
+  tokenTtlSeconds?: number;
+  allowedDomains?: string[];
+  captions?: VideoCaptionTrackInput[];
+  clip?: {
+    start?: number;
+    end?: number;
+    duration?: number;
+    mode?: "accurate" | "fast";
+  } | null;
+};
+
+export type LiveInputOptions = {
+  name?: string;
+  recordMode?: "off" | "automatic";
+  reconnectWindowSeconds?: number;
+  requireSignedPlayback?: boolean;
+  allowedDomains?: string[];
+};
+
+export type LiveInputUpdateOptions = Partial<LiveInputOptions> & {
+  enabled?: boolean;
+};
+
+export type ConvertlyPlayerOptions = {
+  video: HTMLVideoElement;
+  playbackId: string;
+  manifestUrl?: string;
+  posterUrl?: string | null;
+  captions?: Array<{ url: string; label: string; language: string; kind?: "subtitles" | "captions" }>;
+  baseUrl?: string;
+  fetch?: typeof fetch;
+  analytics?: boolean;
+};
+
 export type TransferOptions = {
   sourceUrl?: string;
   destination?: "download" | "convertly-storage";
@@ -204,6 +252,50 @@ export class Convertly {
       this.waitForJob<T>(jobId, options),
   };
 
+  video = {
+    streams: {
+      create: <T = unknown>(options: VideoStreamOptions) =>
+        this.request<T>("/api/video/streams", {
+          method: "POST",
+          body: JSON.stringify(options),
+          headers: { "Content-Type": "application/json" },
+        }),
+      list: <T = unknown>(params: { limit?: number; offset?: number; status?: string } = {}) => {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", String(params.limit));
+        if (params.offset) query.set("offset", String(params.offset));
+        if (params.status) query.set("status", params.status);
+        return this.request<T>(`/api/video/streams${query.size ? `?${query}` : ""}`);
+      },
+      get: <T = unknown>(id: string) => this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`),
+      delete: <T = unknown>(id: string) =>
+        this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    },
+  };
+
+  live = {
+    inputs: {
+      create: <T = unknown>(options: LiveInputOptions = {}) =>
+        this.request<T>("/api/live/inputs", {
+          method: "POST",
+          body: JSON.stringify(options),
+          headers: { "Content-Type": "application/json" },
+        }),
+      list: <T = unknown>() => this.request<T>("/api/live/inputs"),
+      get: <T = unknown>(id: string) => this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`),
+      update: <T = unknown>(id: string, options: LiveInputUpdateOptions) =>
+        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body: JSON.stringify(options),
+          headers: { "Content-Type": "application/json" },
+        }),
+      rotateKey: <T = unknown>(id: string) =>
+        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}/rotate-key`, { method: "POST" }),
+      delete: <T = unknown>(id: string) =>
+        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    },
+  };
+
   private async convert<T>(options: ConvertOptions) {
     const form = new FormData();
     appendInput(form, options);
@@ -300,4 +392,74 @@ export class Convertly {
 
 export function createConvertly(options: ConvertlyClientOptions) {
   return new Convertly(options);
+}
+
+function randomSessionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `cvly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+}
+
+export class ConvertlyPlayer {
+  private readonly video: HTMLVideoElement;
+  private readonly playbackId: string;
+  private readonly baseUrl: string;
+  private readonly fetcher: typeof fetch;
+  private readonly analytics: boolean;
+  private readonly sessionId = randomSessionId();
+  private lastProgressAt = 0;
+
+  constructor(options: ConvertlyPlayerOptions) {
+    this.video = options.video;
+    this.playbackId = options.playbackId;
+    this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
+    this.fetcher = options.fetch ?? fetch;
+    this.analytics = options.analytics !== false;
+
+    if (options.posterUrl) this.video.poster = options.posterUrl;
+    if (options.manifestUrl) this.video.src = options.manifestUrl;
+    for (const caption of options.captions ?? []) {
+      const track = document.createElement("track");
+      track.kind = caption.kind ?? "subtitles";
+      track.label = caption.label;
+      track.srclang = caption.language;
+      track.src = caption.url;
+      this.video.append(track);
+    }
+    this.bindAnalytics();
+  }
+
+  destroy() {
+    this.video.removeAttribute("src");
+    this.video.load();
+  }
+
+  private bindAnalytics() {
+    if (!this.analytics) return;
+    const send = (event: "ready" | "play" | "pause" | "ended" | "timeupdate" | "seeked" | "error") => {
+      void this.fetcher(`${this.baseUrl}/api/video/playback-events`, {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          playbackId: this.playbackId,
+          sessionId: this.sessionId,
+          event,
+          currentTime: Number.isFinite(this.video.currentTime) ? this.video.currentTime : undefined,
+          duration: Number.isFinite(this.video.duration) ? this.video.duration : undefined,
+        }),
+      }).catch(() => {});
+    };
+    this.video.addEventListener("loadedmetadata", () => send("ready"));
+    this.video.addEventListener("play", () => send("play"));
+    this.video.addEventListener("pause", () => send("pause"));
+    this.video.addEventListener("ended", () => send("ended"));
+    this.video.addEventListener("seeked", () => send("seeked"));
+    this.video.addEventListener("error", () => send("error"));
+    this.video.addEventListener("timeupdate", () => {
+      const now = Date.now();
+      if (now - this.lastProgressAt < 15000) return;
+      this.lastProgressAt = now;
+      send("timeupdate");
+    });
+  }
 }
