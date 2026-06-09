@@ -41,6 +41,7 @@
     "@convertly-sh/image": "^0.2.1"
   },
   "devDependencies": {
+    "@types/node": "^20",
     "typescript": "^5"
   },
   "publishConfig": {
