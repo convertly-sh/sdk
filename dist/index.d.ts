@@ -206,6 +206,7 @@ export declare class Convertly {
     private request;
 }
 export declare function createConvertly(options: ConvertlyClientOptions): Convertly;
+export { createConvertlyCdn, defaultWidths, type ConvertlyCdn, type ConvertlyCdnConfig, type ConvertlyFormat, type ConvertlyFit, type ConvertlyGravity, type ConvertlyPosterTransform, type ConvertlyTransform, type ConvertlyVideoFormat, type ConvertlyVideoTransform, } from "@convertly-sh/image";
 export declare class ConvertlyPlayer {
     private readonly video;
     private readonly playbackId;

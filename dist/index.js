@@ -220,6 +220,7 @@ export class Convertly {
 export function createConvertly(options) {
     return new Convertly(options);
 }
+export { createConvertlyCdn, defaultWidths, } from "@convertly-sh/image";
 function randomSessionId() {
     if (typeof crypto !== "undefined" && "randomUUID" in crypto)
         return crypto.randomUUID();

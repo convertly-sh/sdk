@@ -1,7 +1,11 @@
 {
   "name": "@convertly-sh/sdk",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Official JavaScript and TypeScript SDK for the Convertly media API.",
+  "homepage": "https://convertly.sh",
+  "bugs": {
+    "url": "https://convertly.sh/support"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -13,10 +17,12 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "convertly",
@@ -27,7 +33,14 @@
     "api"
   ],
   "license": "MIT",
+  "dependencies": {
+    "@convertly-sh/image": "^0.2.1"
+  },
   "devDependencies": {
+    "@convertly-sh/image": "file:../convertly-image",
     "typescript": "^5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

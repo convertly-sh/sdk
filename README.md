@@ -1,19 +1,62 @@
-# Convertly JavaScript SDK
+# @convertly-sh/sdk
+
+Official JavaScript/TypeScript client for the <a href="https://docs.convertly.sh/docs/sdk" target="_blank" rel="noopener noreferrer">Convertly media API</a> — convert, compress, trim, watermark, vectorize, and run async jobs against Convertly's REST endpoints.
+
+```bash
+npm install @convertly-sh/sdk
+```
+
+For **image CDN URL building** (responsive `srcset`, Next.js loader, React components), use <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_blank" rel="noopener noreferrer">`@convertly-sh/image`</a> instead. This package is for server-side and client-side **API** calls.
+
+## Source on npm
+
+Published files (`dist/`, `README.md`, `LICENSE`) are visible on npm under **Package → Code**. The main app repo is private; this SDK is MIT-licensed for reuse.
+
+## Quick start
 
 ```ts
 import { Convertly } from "@convertly-sh/sdk";
 
-const convertly = new Convertly({ apiKey: process.env.CONVERTLY_API_KEY! });
-
-const job = await convertly.media.trim({
-  sourceUrl: "https://cdn.example.com/video.mp4",
-  start: 10,
-  duration: 8,
-  async: true,
+const convertly = new Convertly({
+  apiKey: process.env.CONVERTLY_API_KEY!, // cvly_… — server-side only
 });
 
-const result = await convertly.jobs.wait(job.jobId);
+await convertly.media.convert({
+  file: await fetch("https://example.com/photo.png").then((r) => r.blob()),
+  filename: "photo.png",
+  format: "webp",
+  saveToStorage: true,
+});
 ```
 
-The SDK supports multipart uploads, `sourceUrl` for media tools and transfers, async jobs, and media tool endpoints.
-Raster-to-SVG conversion preserves color by default; pass `mono: true` to `media.convert` only for monochrome tracing.
+## CDN helpers (re-exported)
+
+```ts
+import { createConvertlyCdn } from "@convertly-sh/sdk";
+
+const cdn = createConvertlyCdn({
+  deliveryKey: process.env.NEXT_PUBLIC_CONVERTLY_DELIVERY_KEY!,
+});
+
+cdn.origin("site", "hero.jpg", { w: 1200 }); // requires origin source in dashboard
+```
+
+See the <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_blank" rel="noopener noreferrer">`@convertly-sh/image` README</a> for origin vs storage prerequisites.
+
+## Security
+
+- **`CONVERTLY_API_KEY`** (`cvly_…`) — full workspace access. Never expose in the browser or `NEXT_PUBLIC_*`.
+- **`NEXT_PUBLIC_CONVERTLY_DELIVERY_KEY`** (`cvly_pub_…`) — CDN only. Safe in client code.
+
+## Docs
+
+- <a href="https://docs.convertly.sh/docs/sdk" target="_blank" rel="noopener noreferrer">JavaScript SDK</a>
+- <a href="https://docs.convertly.sh/docs/image-cdn" target="_blank" rel="noopener noreferrer">Image CDN</a>
+- <a href="https://docs.convertly.sh/docs/media-tools" target="_blank" rel="noopener noreferrer">Media tools API</a>
+
+## License
+
+**MIT** © <a href="https://convertly.sh" target="_blank" rel="noopener noreferrer">Convertly</a>.
+
+- Full text: <a href="https://www.npmjs.com/package/@convertly-sh/sdk?activeTab=code" target="_blank" rel="noopener noreferrer">npm → Code → `LICENSE`</a>
+- Summary: <a href="https://opensource.org/license/mit" target="_blank" rel="noopener noreferrer">MIT on Open Source Initiative</a>

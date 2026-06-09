@@ -394,6 +394,20 @@ export function createConvertly(options: ConvertlyClientOptions) {
   return new Convertly(options);
 }
 
+export {
+  createConvertlyCdn,
+  defaultWidths,
+  type ConvertlyCdn,
+  type ConvertlyCdnConfig,
+  type ConvertlyFormat,
+  type ConvertlyFit,
+  type ConvertlyGravity,
+  type ConvertlyPosterTransform,
+  type ConvertlyTransform,
+  type ConvertlyVideoFormat,
+  type ConvertlyVideoTransform,
+} from "@convertly-sh/image";
+
 function randomSessionId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `cvly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
