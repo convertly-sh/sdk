@@ -3,8 +3,12 @@
   "version": "0.2.1",
   "description": "Official JavaScript and TypeScript SDK for the Convertly media API.",
   "homepage": "https://convertly.sh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/convertly-sh/sdk.git"
+  },
   "bugs": {
-    "url": "https://convertly.sh/support"
+    "url": "https://github.com/convertly-sh/sdk/issues"
   },
   "type": "module",
   "main": "./dist/index.js",
@@ -37,7 +41,6 @@
     "@convertly-sh/image": "^0.2.1"
   },
   "devDependencies": {
-    "@convertly-sh/image": "file:../convertly-image",
     "typescript": "^5"
   },
   "publishConfig": {
