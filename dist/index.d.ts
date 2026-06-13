@@ -70,16 +70,6 @@ export type VideoStreamOptions = {
         mode?: "accurate" | "fast";
     } | null;
 };
-export type LiveInputOptions = {
-    name?: string;
-    recordMode?: "off" | "automatic";
-    reconnectWindowSeconds?: number;
-    requireSignedPlayback?: boolean;
-    allowedDomains?: string[];
-};
-export type LiveInputUpdateOptions = Partial<LiveInputOptions> & {
-    enabled?: boolean;
-};
 export type ConvertlyPlayerOptions = {
     video: HTMLVideoElement;
     playbackId: string;
@@ -185,16 +175,6 @@ export declare class Convertly {
                 status?: string;
             }) => Promise<T>;
             get: <T = unknown>(id: string) => Promise<T>;
-            delete: <T = unknown>(id: string) => Promise<T>;
-        };
-    };
-    live: {
-        inputs: {
-            create: <T = unknown>(options?: LiveInputOptions) => Promise<T>;
-            list: <T = unknown>() => Promise<T>;
-            get: <T = unknown>(id: string) => Promise<T>;
-            update: <T = unknown>(id: string, options: LiveInputUpdateOptions) => Promise<T>;
-            rotateKey: <T = unknown>(id: string) => Promise<T>;
             delete: <T = unknown>(id: string) => Promise<T>;
         };
     };

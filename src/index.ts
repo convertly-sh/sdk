@@ -75,18 +75,6 @@ export type VideoStreamOptions = {
   } | null;
 };
 
-export type LiveInputOptions = {
-  name?: string;
-  recordMode?: "off" | "automatic";
-  reconnectWindowSeconds?: number;
-  requireSignedPlayback?: boolean;
-  allowedDomains?: string[];
-};
-
-export type LiveInputUpdateOptions = Partial<LiveInputOptions> & {
-  enabled?: boolean;
-};
-
 export type ConvertlyPlayerOptions = {
   video: HTMLVideoElement;
   playbackId: string;
@@ -270,29 +258,6 @@ export class Convertly {
       get: <T = unknown>(id: string) => this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`),
       delete: <T = unknown>(id: string) =>
         this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
-    },
-  };
-
-  live = {
-    inputs: {
-      create: <T = unknown>(options: LiveInputOptions = {}) =>
-        this.request<T>("/api/live/inputs", {
-          method: "POST",
-          body: JSON.stringify(options),
-          headers: { "Content-Type": "application/json" },
-        }),
-      list: <T = unknown>() => this.request<T>("/api/live/inputs"),
-      get: <T = unknown>(id: string) => this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`),
-      update: <T = unknown>(id: string, options: LiveInputUpdateOptions) =>
-        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`, {
-          method: "PATCH",
-          body: JSON.stringify(options),
-          headers: { "Content-Type": "application/json" },
-        }),
-      rotateKey: <T = unknown>(id: string) =>
-        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}/rotate-key`, { method: "POST" }),
-      delete: <T = unknown>(id: string) =>
-        this.request<T>(`/api/live/inputs/${encodeURIComponent(id)}`, { method: "DELETE" }),
     },
   };
 

@@ -109,24 +109,6 @@ export class Convertly {
                 delete: (id) => this.request(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
             },
         };
-        this.live = {
-            inputs: {
-                create: (options = {}) => this.request("/api/live/inputs", {
-                    method: "POST",
-                    body: JSON.stringify(options),
-                    headers: { "Content-Type": "application/json" },
-                }),
-                list: () => this.request("/api/live/inputs"),
-                get: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`),
-                update: (id, options) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`, {
-                    method: "PATCH",
-                    body: JSON.stringify(options),
-                    headers: { "Content-Type": "application/json" },
-                }),
-                rotateKey: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}/rotate-key`, { method: "POST" }),
-                delete: (id) => this.request(`/api/live/inputs/${encodeURIComponent(id)}`, { method: "DELETE" }),
-            },
-        };
         if (!options.apiKey)
             throw new Error("Convertly API key is required.");
         this.apiKey = options.apiKey;
