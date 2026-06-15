@@ -35,7 +35,7 @@ await convertly.media.convert({
 import { createConvertlyCdn } from "@convertly-sh/sdk";
 
 const cdn = createConvertlyCdn({
-  deliveryKey: process.env.NEXT_PUBLIC_CONVERTLY_DELIVERY_KEY!,
+  namespace: process.env.NEXT_PUBLIC_CONVERTLY_CDN_NAMESPACE!,
 });
 
 cdn.origin("site", "hero.jpg", { w: 1200 }); // requires origin source in dashboard
@@ -46,7 +46,7 @@ See the <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_bla
 ## Security
 
 - **`CONVERTLY_API_KEY`** (`cvly_…`) — full workspace access. Never expose in the browser or `NEXT_PUBLIC_*`.
-- **`NEXT_PUBLIC_CONVERTLY_DELIVERY_KEY`** (`cvly_pub_…`) — CDN only. Safe in client code.
+- **`NEXT_PUBLIC_CONVERTLY_CDN_NAMESPACE`** — public CDN namespace. Safe in client code.
 
 ## Docs
 
