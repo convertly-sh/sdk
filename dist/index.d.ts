@@ -1,138 +1,19 @@
-export type ConvertlyInput = Blob | ArrayBuffer | Uint8Array | Buffer | string;
-export type ConvertlyFileInput = {
-    file?: ConvertlyInput;
-    sourceUrl?: string;
-    filename?: string;
-    contentType?: string;
-};
-export type ConvertlyClientOptions = {
-    apiKey: string;
-    baseUrl?: string;
-    fetch?: typeof fetch;
-};
-export type ConvertOptions = ConvertlyFileInput & {
-    format: string;
-    compression?: string;
-    resize?: string;
-    resizeWidth?: number;
-    resizeHeight?: number;
-    autoOrient?: boolean;
-    mono?: boolean;
-    saveToStorage?: boolean;
-};
-export type CompressOptions = ConvertlyFileInput & {
-    mode?: "quality" | "target-size";
-    quality?: number;
-    targetBytes?: number;
-    lossless?: boolean;
-    stripMetadata?: boolean;
-    saveToStorage?: boolean;
-};
-export type MediaToolOptions = ConvertlyFileInput & {
-    async?: boolean;
-    background?: boolean;
-    [key: string]: unknown;
-};
-export type SignedTransformOptions = {
-    sourceUrl: string;
-    preset?: "ecommerce" | "avatar" | "blog-hero" | "social-preview";
-    width?: number;
-    height?: number;
-    fit?: "cover" | "contain" | "fill" | "inside" | "outside";
-    format?: "jpg" | "png" | "webp" | "avif";
-    quality?: number;
-    expiresIn?: number;
-};
-export type VideoCaptionTrackInput = {
-    label: string;
-    language: string;
-    kind?: "subtitles" | "captions";
-    content: string;
-};
-export type VideoStreamOptions = {
-    sourceFileId: string;
-    profile?: "basic" | "standard" | "hd" | "source_max" | "custom";
-    packageFormats?: Array<"hls" | "dash">;
-    renditions?: Array<{
-        height: number;
-        bitrate: number;
-        audioBitrate?: number;
-    }>;
-    segmentDuration?: number;
-    access?: "public" | "signed";
-    tokenTtlSeconds?: number;
-    allowedDomains?: string[];
-    captions?: VideoCaptionTrackInput[];
-    clip?: {
-        start?: number;
-        end?: number;
-        duration?: number;
-        mode?: "accurate" | "fast";
-    } | null;
-};
-export type ConvertlyPlayerOptions = {
-    video: HTMLVideoElement;
-    playbackId: string;
-    manifestUrl?: string;
-    posterUrl?: string | null;
-    captions?: Array<{
-        url: string;
-        label: string;
-        language: string;
-        kind?: "subtitles" | "captions";
-    }>;
-    baseUrl?: string;
-    fetch?: typeof fetch;
-    analytics?: boolean;
-};
-export type TransferOptions = {
-    sourceUrl?: string;
-    destination?: "download" | "convertly-storage";
-    filename?: string;
-    contentType?: string;
-    async?: boolean;
-    extract?: boolean;
-    extractOptions?: {
-        preservePaths?: boolean;
-        folderName?: string;
-        targetFolderId?: string | null;
-        maxFiles?: number;
-        maxEntryBytes?: number;
-        maxTotalBytes?: number;
-    };
-    cloudSource?: {
-        provider: "google-drive" | "s3" | "dropbox";
-        fileId?: string;
-        folderId?: string;
-        bucket?: string;
-        key?: string;
-        prefix?: string;
-        region?: string;
-        endpoint?: string;
-        accessKeyId?: string;
-        secretAccessKey?: string;
-        sessionToken?: string;
-        accessToken?: string;
-        path?: string;
-        recursive?: boolean;
-        targetFolderId?: string | null;
-    };
-};
-export type WaitOptions = {
-    intervalMs?: number;
-    timeoutMs?: number;
-    signal?: AbortSignal;
-};
-export type ConvertlyResponse<T = unknown> = T;
-export declare class ConvertlyError extends Error {
-    status: number;
-    body: unknown;
-    constructor(message: string, status: number, body: unknown);
-}
+import { toBlob } from "./internal/form.js";
+import { createStorageClient } from "./storage.js";
+import type { CompressOptions, ConvertlyClientOptions, ConvertlyPlayerOptions, ConvertOptions, MediaToolOptions, SignedTransformOptions, TransferOptions, WaitOptions } from "./types.js";
+import { createVideoStreamsClient } from "./video-streams.js";
+export type { CompleteUploadBody, CompressOptions, ConvertlyClientOptions, ConvertlyFileInput, ConvertlyInput, ConvertlyPlayerOptions, ConvertOptions, CreateFolderOptions, CreateUploadSessionOptions, ListFilesOptions, ListFoldersOptions, MediaToolOptions, SignedTransformOptions, StoredFileRecord, StoredFolderRecord, TransferOptions, UpdateFileOptions, UpdateFolderOptions, UploadFileOptions, UploadSession, UploadStrategy, VideoCaptionTrackInput, VideoChapterInput, VideoStreamOptions, VideoStreamUpdateOptions, WaitOptions, } from "./types.js";
+export { ConvertlyError } from "./errors.js";
+export type { ConvertlyStorageClient } from "./storage.js";
+export type { ConvertlyVideoStreamsClient } from "./video-streams.js";
 export declare class Convertly {
     private readonly apiKey;
     private readonly baseUrl;
     private readonly fetcher;
+    readonly storage: ReturnType<typeof createStorageClient>;
+    readonly video: {
+        streams: ReturnType<typeof createVideoStreamsClient>;
+    };
     constructor(options: ConvertlyClientOptions);
     media: {
         convert: <T = unknown>(options: ConvertOptions) => Promise<T>;
@@ -166,18 +47,6 @@ export declare class Convertly {
             status?: string;
         }>(jobId: string, options?: WaitOptions) => Promise<T>;
     };
-    video: {
-        streams: {
-            create: <T = unknown>(options: VideoStreamOptions) => Promise<T>;
-            list: <T = unknown>(params?: {
-                limit?: number;
-                offset?: number;
-                status?: string;
-            }) => Promise<T>;
-            get: <T = unknown>(id: string) => Promise<T>;
-            delete: <T = unknown>(id: string) => Promise<T>;
-        };
-    };
     private convert;
     private compress;
     private transfer;
@@ -187,6 +56,7 @@ export declare class Convertly {
 }
 export declare function createConvertly(options: ConvertlyClientOptions): Convertly;
 export { createConvertlyCdn, defaultWidths, type ConvertlyCdn, type ConvertlyCdnConfig, type ConvertlyFormat, type ConvertlyFit, type ConvertlyGravity, type ConvertlyPosterTransform, type ConvertlyTransform, type ConvertlyVideoFormat, type ConvertlyVideoTransform, } from "@convertly-sh/image";
+/** @deprecated Prefer `@convertly-sh/player` for HLS playback with controls and branding. */
 export declare class ConvertlyPlayer {
     private readonly video;
     private readonly playbackId;
@@ -199,3 +69,4 @@ export declare class ConvertlyPlayer {
     destroy(): void;
     private bindAnalytics;
 }
+export { toBlob };

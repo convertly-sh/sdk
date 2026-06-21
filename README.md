@@ -1,16 +1,12 @@
 # @convertly-sh/sdk
 
-Official JavaScript/TypeScript client for the <a href="https://docs.convertly.sh/docs/sdk" target="_blank" rel="noopener noreferrer">Convertly media API</a> — convert, compress, trim, watermark, vectorize, and run async jobs against Convertly's REST endpoints.
+Official JavaScript/TypeScript client for the <a href="https://docs.convertly.sh/docs/sdk" target="_blank" rel="noopener noreferrer">Convertly media API</a> — convert, compress, trim, watermark, storage uploads, video streams, async jobs, and transfers.
 
 ```bash
 npm install @convertly-sh/sdk
 ```
 
 For **image CDN URL building** (responsive `srcset`, Next.js loader, React components), use <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_blank" rel="noopener noreferrer">`@convertly-sh/image`</a> instead. This package is for server-side and client-side **API** calls.
-
-## Source on npm
-
-Published files (`dist/`, `README.md`, `LICENSE`) are visible on npm under **Package → Code**. The main app repo is private; this SDK is MIT-licensed for reuse.
 
 ## Quick start
 
@@ -29,6 +25,37 @@ await convertly.media.convert({
 });
 ```
 
+## Convertly Storage
+
+```ts
+const { file } = await convertly.storage.files.upload({
+  file: buffer,
+  filename: "hero.jpg",
+  contentType: "image/jpeg",
+});
+
+const { files } = await convertly.storage.files.list({ folderId: null, limit: 50 });
+```
+
+Files over 8 MiB use presigned direct-to-storage uploads automatically. Override with `strategy: "multipart" | "presigned" | "auto"`.
+
+## Video streams
+
+```ts
+const { stream } = await convertly.video.streams.create({
+  sourceFileId: file.id,
+  packageFormats: ["hls"],
+});
+
+await convertly.video.streams.addCaptions(stream.id, {
+  label: "English",
+  language: "en",
+  content: "WEBVTT\n\n00:00:01.000 --> 00:00:04.000\nHello",
+});
+```
+
+Playback UI: <a href="https://www.npmjs.com/package/@convertly-sh/player" target="_blank" rel="noopener noreferrer">`@convertly-sh/player`</a>.
+
 ## CDN helpers (re-exported)
 
 ```ts
@@ -38,10 +65,12 @@ const cdn = createConvertlyCdn({
   namespace: process.env.NEXT_PUBLIC_CONVERTLY_CDN_NAMESPACE!,
 });
 
-cdn.origin("site", "hero.jpg", { w: 1200 }); // requires origin source in dashboard
+cdn.origin("site", "hero.jpg", { w: 1200 });
 ```
 
-See the <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_blank" rel="noopener noreferrer">`@convertly-sh/image` README</a> for origin vs storage prerequisites.
+## Other languages
+
+First-party SDKs: JavaScript/TypeScript (`@convertly-sh/sdk`) and PHP (`convertly/convertly-php`). For Python, Go, and others, use the <a href="https://docs.convertly.sh/openapi.json" target="_blank" rel="noopener noreferrer">OpenAPI spec</a> with REST or codegen.
 
 ## Security
 
@@ -57,6 +86,3 @@ See the <a href="https://www.npmjs.com/package/@convertly-sh/image" target="_bla
 ## License
 
 **MIT** © <a href="https://convertly.sh" target="_blank" rel="noopener noreferrer">Convertly</a>.
-
-- Full text: <a href="https://www.npmjs.com/package/@convertly-sh/sdk?activeTab=code" target="_blank" rel="noopener noreferrer">npm → Code → `LICENSE`</a>
-- Summary: <a href="https://opensource.org/license/mit" target="_blank" rel="noopener noreferrer">MIT on Open Source Initiative</a>

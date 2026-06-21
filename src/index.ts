@@ -1,172 +1,53 @@
-export type ConvertlyInput = Blob | ArrayBuffer | Uint8Array | Buffer | string;
+import { ConvertlyError } from "./errors.js";
+import { appendInput, appendPrimitive, appendSingleInput, toBlob } from "./internal/form.js";
+import { createStorageClient } from "./storage.js";
+import type {
+  CompressOptions,
+  ConvertlyClientOptions,
+  ConvertlyFileInput,
+  ConvertlyPlayerOptions,
+  ConvertOptions,
+  MediaToolOptions,
+  SignedTransformOptions,
+  TransferOptions,
+  WaitOptions,
+} from "./types.js";
+import { createVideoStreamsClient } from "./video-streams.js";
 
-export type ConvertlyFileInput = {
-  file?: ConvertlyInput;
-  sourceUrl?: string;
-  filename?: string;
-  contentType?: string;
-};
+export type {
+  CompleteUploadBody,
+  CompressOptions,
+  ConvertlyClientOptions,
+  ConvertlyFileInput,
+  ConvertlyInput,
+  ConvertlyPlayerOptions,
+  ConvertOptions,
+  CreateFolderOptions,
+  CreateUploadSessionOptions,
+  ListFilesOptions,
+  ListFoldersOptions,
+  MediaToolOptions,
+  SignedTransformOptions,
+  StoredFileRecord,
+  StoredFolderRecord,
+  TransferOptions,
+  UpdateFileOptions,
+  UpdateFolderOptions,
+  UploadFileOptions,
+  UploadSession,
+  UploadStrategy,
+  VideoCaptionTrackInput,
+  VideoChapterInput,
+  VideoStreamOptions,
+  VideoStreamUpdateOptions,
+  WaitOptions,
+} from "./types.js";
 
-export type ConvertlyClientOptions = {
-  apiKey: string;
-  baseUrl?: string;
-  fetch?: typeof fetch;
-};
-
-export type ConvertOptions = ConvertlyFileInput & {
-  format: string;
-  compression?: string;
-  resize?: string;
-  resizeWidth?: number;
-  resizeHeight?: number;
-  autoOrient?: boolean;
-  mono?: boolean;
-  saveToStorage?: boolean;
-};
-
-export type CompressOptions = ConvertlyFileInput & {
-  mode?: "quality" | "target-size";
-  quality?: number;
-  targetBytes?: number;
-  lossless?: boolean;
-  stripMetadata?: boolean;
-  saveToStorage?: boolean;
-};
-
-export type MediaToolOptions = ConvertlyFileInput & {
-  async?: boolean;
-  background?: boolean;
-  [key: string]: unknown;
-};
-
-export type SignedTransformOptions = {
-  sourceUrl: string;
-  preset?: "ecommerce" | "avatar" | "blog-hero" | "social-preview";
-  width?: number;
-  height?: number;
-  fit?: "cover" | "contain" | "fill" | "inside" | "outside";
-  format?: "jpg" | "png" | "webp" | "avif";
-  quality?: number;
-  expiresIn?: number;
-};
-
-export type VideoCaptionTrackInput = {
-  label: string;
-  language: string;
-  kind?: "subtitles" | "captions";
-  content: string;
-};
-
-export type VideoStreamOptions = {
-  sourceFileId: string;
-  profile?: "basic" | "standard" | "hd" | "source_max" | "custom";
-  packageFormats?: Array<"hls" | "dash">;
-  renditions?: Array<{ height: number; bitrate: number; audioBitrate?: number }>;
-  segmentDuration?: number;
-  access?: "public" | "signed";
-  tokenTtlSeconds?: number;
-  allowedDomains?: string[];
-  captions?: VideoCaptionTrackInput[];
-  clip?: {
-    start?: number;
-    end?: number;
-    duration?: number;
-    mode?: "accurate" | "fast";
-  } | null;
-};
-
-export type ConvertlyPlayerOptions = {
-  video: HTMLVideoElement;
-  playbackId: string;
-  manifestUrl?: string;
-  posterUrl?: string | null;
-  captions?: Array<{ url: string; label: string; language: string; kind?: "subtitles" | "captions" }>;
-  baseUrl?: string;
-  fetch?: typeof fetch;
-  analytics?: boolean;
-};
-
-export type TransferOptions = {
-  sourceUrl?: string;
-  destination?: "download" | "convertly-storage";
-  filename?: string;
-  contentType?: string;
-  async?: boolean;
-  extract?: boolean;
-  extractOptions?: {
-    preservePaths?: boolean;
-    folderName?: string;
-    targetFolderId?: string | null;
-    maxFiles?: number;
-    maxEntryBytes?: number;
-    maxTotalBytes?: number;
-  };
-  cloudSource?: {
-    provider: "google-drive" | "s3" | "dropbox";
-    fileId?: string;
-    folderId?: string;
-    bucket?: string;
-    key?: string;
-    prefix?: string;
-    region?: string;
-    endpoint?: string;
-    accessKeyId?: string;
-    secretAccessKey?: string;
-    sessionToken?: string;
-    accessToken?: string;
-    path?: string;
-    recursive?: boolean;
-    targetFolderId?: string | null;
-  };
-};
-
-export type WaitOptions = {
-  intervalMs?: number;
-  timeoutMs?: number;
-  signal?: AbortSignal;
-};
-
-export type ConvertlyResponse<T = unknown> = T;
+export { ConvertlyError } from "./errors.js";
+export type { ConvertlyStorageClient } from "./storage.js";
+export type { ConvertlyVideoStreamsClient } from "./video-streams.js";
 
 const defaultBaseUrl = "https://convertly.sh";
-
-function appendPrimitive(form: FormData, key: string, value: unknown) {
-  if (value === undefined || value === null) return;
-  if (typeof value === "boolean") form.append(key, value ? "true" : "false");
-  else if (typeof value === "number") form.append(key, String(value));
-  else if (typeof value === "string") form.append(key, value);
-}
-
-function toBlob(input: Exclude<ConvertlyInput, string>, contentType?: string) {
-  if (input instanceof Blob) return input;
-  return new Blob([input as BlobPart], { type: contentType });
-}
-
-function appendInput(form: FormData, input: ConvertlyFileInput) {
-  if (input.sourceUrl) {
-    form.append("sourceUrl", input.sourceUrl);
-    return;
-  }
-  if (!input.file) throw new Error("Provide either file or sourceUrl.");
-  if (typeof input.file === "string") {
-    form.append("sourceUrl", input.file);
-    return;
-  }
-  form.append("files", toBlob(input.file, input.contentType), input.filename ?? "upload");
-}
-
-function appendSingleInput(form: FormData, input: ConvertlyFileInput) {
-  if (input.sourceUrl) {
-    form.append("sourceUrl", input.sourceUrl);
-    return;
-  }
-  if (!input.file) throw new Error("Provide either file or sourceUrl.");
-  if (typeof input.file === "string") {
-    form.append("sourceUrl", input.file);
-    return;
-  }
-  form.append("file", toBlob(input.file, input.contentType), input.filename ?? "upload");
-}
 
 function delay(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
@@ -182,28 +63,21 @@ function delay(ms: number, signal?: AbortSignal) {
   });
 }
 
-export class ConvertlyError extends Error {
-  status: number;
-  body: unknown;
-
-  constructor(message: string, status: number, body: unknown) {
-    super(message);
-    this.name = "ConvertlyError";
-    this.status = status;
-    this.body = body;
-  }
-}
-
 export class Convertly {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly fetcher: typeof fetch;
+
+  readonly storage: ReturnType<typeof createStorageClient>;
+  readonly video: { streams: ReturnType<typeof createVideoStreamsClient> };
 
   constructor(options: ConvertlyClientOptions) {
     if (!options.apiKey) throw new Error("Convertly API key is required.");
     this.apiKey = options.apiKey;
     this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
     this.fetcher = options.fetch ?? fetch;
+    this.storage = createStorageClient(this.request.bind(this), this.fetcher);
+    this.video = { streams: createVideoStreamsClient(this.request.bind(this)) };
   }
 
   media = {
@@ -238,27 +112,6 @@ export class Convertly {
       this.request<T>(`/api/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" }),
     wait: <T extends { status?: string } = { status?: string }>(jobId: string, options: WaitOptions = {}) =>
       this.waitForJob<T>(jobId, options),
-  };
-
-  video = {
-    streams: {
-      create: <T = unknown>(options: VideoStreamOptions) =>
-        this.request<T>("/api/video/streams", {
-          method: "POST",
-          body: JSON.stringify(options),
-          headers: { "Content-Type": "application/json" },
-        }),
-      list: <T = unknown>(params: { limit?: number; offset?: number; status?: string } = {}) => {
-        const query = new URLSearchParams();
-        if (params.limit) query.set("limit", String(params.limit));
-        if (params.offset) query.set("offset", String(params.offset));
-        if (params.status) query.set("status", params.status);
-        return this.request<T>(`/api/video/streams${query.size ? `?${query}` : ""}`);
-      },
-      get: <T = unknown>(id: string) => this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`),
-      delete: <T = unknown>(id: string) =>
-        this.request<T>(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
-    },
   };
 
   private async convert<T>(options: ConvertOptions) {
@@ -378,6 +231,7 @@ function randomSessionId() {
   return `cvly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
 
+/** @deprecated Prefer `@convertly-sh/player` for HLS playback with controls and branding. */
 export class ConvertlyPlayer {
   private readonly video: HTMLVideoElement;
   private readonly playbackId: string;
@@ -442,3 +296,5 @@ export class ConvertlyPlayer {
     });
   }
 }
+
+export { toBlob };

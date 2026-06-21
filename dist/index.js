@@ -1,45 +1,9 @@
+import { ConvertlyError } from "./errors.js";
+import { appendInput, appendPrimitive, appendSingleInput, toBlob } from "./internal/form.js";
+import { createStorageClient } from "./storage.js";
+import { createVideoStreamsClient } from "./video-streams.js";
+export { ConvertlyError } from "./errors.js";
 const defaultBaseUrl = "https://convertly.sh";
-function appendPrimitive(form, key, value) {
-    if (value === undefined || value === null)
-        return;
-    if (typeof value === "boolean")
-        form.append(key, value ? "true" : "false");
-    else if (typeof value === "number")
-        form.append(key, String(value));
-    else if (typeof value === "string")
-        form.append(key, value);
-}
-function toBlob(input, contentType) {
-    if (input instanceof Blob)
-        return input;
-    return new Blob([input], { type: contentType });
-}
-function appendInput(form, input) {
-    if (input.sourceUrl) {
-        form.append("sourceUrl", input.sourceUrl);
-        return;
-    }
-    if (!input.file)
-        throw new Error("Provide either file or sourceUrl.");
-    if (typeof input.file === "string") {
-        form.append("sourceUrl", input.file);
-        return;
-    }
-    form.append("files", toBlob(input.file, input.contentType), input.filename ?? "upload");
-}
-function appendSingleInput(form, input) {
-    if (input.sourceUrl) {
-        form.append("sourceUrl", input.sourceUrl);
-        return;
-    }
-    if (!input.file)
-        throw new Error("Provide either file or sourceUrl.");
-    if (typeof input.file === "string") {
-        form.append("sourceUrl", input.file);
-        return;
-    }
-    form.append("file", toBlob(input.file, input.contentType), input.filename ?? "upload");
-}
 function delay(ms, signal) {
     return new Promise((resolve, reject) => {
         const timer = setTimeout(resolve, ms);
@@ -48,14 +12,6 @@ function delay(ms, signal) {
             reject(signal.reason ?? new Error("Aborted."));
         }, { once: true });
     });
-}
-export class ConvertlyError extends Error {
-    constructor(message, status, body) {
-        super(message);
-        this.name = "ConvertlyError";
-        this.status = status;
-        this.body = body;
-    }
 }
 export class Convertly {
     constructor(options) {
@@ -88,32 +44,13 @@ export class Convertly {
             cancel: (jobId) => this.request(`/api/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" }),
             wait: (jobId, options = {}) => this.waitForJob(jobId, options),
         };
-        this.video = {
-            streams: {
-                create: (options) => this.request("/api/video/streams", {
-                    method: "POST",
-                    body: JSON.stringify(options),
-                    headers: { "Content-Type": "application/json" },
-                }),
-                list: (params = {}) => {
-                    const query = new URLSearchParams();
-                    if (params.limit)
-                        query.set("limit", String(params.limit));
-                    if (params.offset)
-                        query.set("offset", String(params.offset));
-                    if (params.status)
-                        query.set("status", params.status);
-                    return this.request(`/api/video/streams${query.size ? `?${query}` : ""}`);
-                },
-                get: (id) => this.request(`/api/video/streams/${encodeURIComponent(id)}`),
-                delete: (id) => this.request(`/api/video/streams/${encodeURIComponent(id)}`, { method: "DELETE" }),
-            },
-        };
         if (!options.apiKey)
             throw new Error("Convertly API key is required.");
         this.apiKey = options.apiKey;
         this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
         this.fetcher = options.fetch ?? fetch;
+        this.storage = createStorageClient(this.request.bind(this), this.fetcher);
+        this.video = { streams: createVideoStreamsClient(this.request.bind(this)) };
     }
     async convert(options) {
         const form = new FormData();
@@ -208,6 +145,7 @@ function randomSessionId() {
         return crypto.randomUUID();
     return `cvly_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
 }
+/** @deprecated Prefer `@convertly-sh/player` for HLS playback with controls and branding. */
 export class ConvertlyPlayer {
     constructor(options) {
         this.sessionId = randomSessionId();
@@ -267,3 +205,4 @@ export class ConvertlyPlayer {
         });
     }
 }
+export { toBlob };
