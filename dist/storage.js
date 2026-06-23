@@ -83,6 +83,21 @@ export function createStorageClient(request, fetcher) {
                     method: "DELETE",
                 });
             },
+            search: async (options = {}) => {
+                const query = buildQuery({
+                    q: options.q,
+                    tags: options.tags?.length ? options.tags.join(",") : undefined,
+                    tagMode: options.tagMode,
+                    orientation: options.orientation,
+                    folderId: options.folderId === null ? "null" : options.folderId,
+                    mimePrefix: options.mimePrefix,
+                    locale: options.locale,
+                    facets: options.facets?.length ? options.facets.join(",") : undefined,
+                    limit: options.limit,
+                    offset: options.offset,
+                });
+                return request(`/api/files/search${query}`);
+            },
         },
         folders: {
             list: async (options = {}) => {

@@ -1,4 +1,6 @@
 import { ConvertlyError } from "./errors.js";
+import { createAiClient } from "./ai.js";
+import { createLibraryClient } from "./library.js";
 import { appendInput, appendPrimitive, appendSingleInput, toBlob } from "./internal/form.js";
 import { createStorageClient } from "./storage.js";
 import type {
@@ -27,6 +29,8 @@ export type {
   ListFilesOptions,
   ListFoldersOptions,
   MediaToolOptions,
+  SearchFilesOptions,
+  SearchFilesResult,
   SignedTransformOptions,
   StoredFileRecord,
   StoredFolderRecord,
@@ -46,6 +50,8 @@ export type {
 export { ConvertlyError } from "./errors.js";
 export type { ConvertlyStorageClient } from "./storage.js";
 export type { ConvertlyVideoStreamsClient } from "./video-streams.js";
+export type { ConvertlyAiClient, AiTagFileOptions, AiTagFileResult } from "./ai.js";
+export type { ConvertlyLibraryClient, LibraryTaxonomyTerm, CreateTaxonomyTermOptions, UpdateTaxonomyTermOptions } from "./library.js";
 
 const defaultBaseUrl = "https://convertly.sh";
 
@@ -69,6 +75,8 @@ export class Convertly {
   private readonly fetcher: typeof fetch;
 
   readonly storage: ReturnType<typeof createStorageClient>;
+  readonly library: ReturnType<typeof createLibraryClient>;
+  readonly ai: ReturnType<typeof createAiClient>;
   readonly video: { streams: ReturnType<typeof createVideoStreamsClient> };
 
   constructor(options: ConvertlyClientOptions) {
@@ -77,6 +85,8 @@ export class Convertly {
     this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
     this.fetcher = options.fetch ?? fetch;
     this.storage = createStorageClient(this.request.bind(this), this.fetcher);
+    this.library = createLibraryClient(this.request.bind(this));
+    this.ai = createAiClient(this.request.bind(this));
     this.video = { streams: createVideoStreamsClient(this.request.bind(this)) };
   }
 

@@ -1,16 +1,22 @@
+import { createAiClient } from "./ai.js";
+import { createLibraryClient } from "./library.js";
 import { toBlob } from "./internal/form.js";
 import { createStorageClient } from "./storage.js";
 import type { CompressOptions, ConvertlyClientOptions, ConvertlyPlayerOptions, ConvertOptions, MediaToolOptions, SignedTransformOptions, TransferOptions, WaitOptions } from "./types.js";
 import { createVideoStreamsClient } from "./video-streams.js";
-export type { CompleteUploadBody, CompressOptions, ConvertlyClientOptions, ConvertlyFileInput, ConvertlyInput, ConvertlyPlayerOptions, ConvertOptions, CreateFolderOptions, CreateUploadSessionOptions, ListFilesOptions, ListFoldersOptions, MediaToolOptions, SignedTransformOptions, StoredFileRecord, StoredFolderRecord, TransferOptions, UpdateFileOptions, UpdateFolderOptions, UploadFileOptions, UploadSession, UploadStrategy, VideoCaptionTrackInput, VideoChapterInput, VideoStreamOptions, VideoStreamUpdateOptions, WaitOptions, } from "./types.js";
+export type { CompleteUploadBody, CompressOptions, ConvertlyClientOptions, ConvertlyFileInput, ConvertlyInput, ConvertlyPlayerOptions, ConvertOptions, CreateFolderOptions, CreateUploadSessionOptions, ListFilesOptions, ListFoldersOptions, MediaToolOptions, SearchFilesOptions, SearchFilesResult, SignedTransformOptions, StoredFileRecord, StoredFolderRecord, TransferOptions, UpdateFileOptions, UpdateFolderOptions, UploadFileOptions, UploadSession, UploadStrategy, VideoCaptionTrackInput, VideoChapterInput, VideoStreamOptions, VideoStreamUpdateOptions, WaitOptions, } from "./types.js";
 export { ConvertlyError } from "./errors.js";
 export type { ConvertlyStorageClient } from "./storage.js";
 export type { ConvertlyVideoStreamsClient } from "./video-streams.js";
+export type { ConvertlyAiClient, AiTagFileOptions, AiTagFileResult } from "./ai.js";
+export type { ConvertlyLibraryClient, LibraryTaxonomyTerm, CreateTaxonomyTermOptions, UpdateTaxonomyTermOptions } from "./library.js";
 export declare class Convertly {
     private readonly apiKey;
     private readonly baseUrl;
     private readonly fetcher;
     readonly storage: ReturnType<typeof createStorageClient>;
+    readonly library: ReturnType<typeof createLibraryClient>;
+    readonly ai: ReturnType<typeof createAiClient>;
     readonly video: {
         streams: ReturnType<typeof createVideoStreamsClient>;
     };

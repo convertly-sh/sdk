@@ -187,6 +187,42 @@ export type UpdateFileOptions = {
     description?: string;
     tags?: string[];
 };
+export type SearchFilesOptions = {
+    q?: string;
+    tags?: string[];
+    tagMode?: "any" | "all";
+    orientation?: "vertical" | "horizontal" | "square";
+    folderId?: string | null;
+    mimePrefix?: string;
+    locale?: string;
+    facets?: Array<"tags" | "orientation" | "mimeType">;
+    limit?: number;
+    offset?: number;
+};
+export type LibraryFacetBucket = {
+    value: string;
+    count: number;
+    label?: string;
+};
+export type SearchFilesResult = {
+    files: StoredFileRecord[];
+    pagination: {
+        limit: number;
+        offset: number;
+        total: number;
+        hasMore: boolean;
+    };
+    facets?: Partial<Record<"tags" | "orientation" | "mimeType", LibraryFacetBucket[]>>;
+    applied: {
+        q: string;
+        tags: string[];
+        tagMode: "any" | "all";
+        orientation: string | null;
+        folderId: string | null;
+        mimePrefix: string | null;
+        locale: string;
+    };
+};
 export type UploadStrategy = "auto" | "multipart" | "presigned";
 export type UploadFileOptions = {
     file: Exclude<ConvertlyInput, string>;

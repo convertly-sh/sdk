@@ -1,4 +1,4 @@
-import type { CompleteUploadBody, CreateFolderOptions, CreateUploadSessionOptions, ListFilesOptions, ListFoldersOptions, RequestFn, StoredFileRecord, StoredFolderRecord, UpdateFileOptions, UpdateFolderOptions, UploadFileOptions, UploadSession } from "./types.js";
+import type { CompleteUploadBody, CreateFolderOptions, CreateUploadSessionOptions, ListFilesOptions, ListFoldersOptions, RequestFn, SearchFilesOptions, SearchFilesResult, StoredFileRecord, StoredFolderRecord, UpdateFileOptions, UpdateFolderOptions, UploadFileOptions, UploadSession } from "./types.js";
 export declare function createStorageClient(request: RequestFn, fetcher: typeof fetch): {
     files: {
         list: (options?: ListFilesOptions) => Promise<{
@@ -26,6 +26,7 @@ export declare function createStorageClient(request: RequestFn, fetcher: typeof 
             success: boolean;
             message: string;
         }>;
+        search: (options?: SearchFilesOptions) => Promise<SearchFilesResult>;
     };
     folders: {
         list: (options?: ListFoldersOptions) => Promise<{

@@ -1,4 +1,6 @@
 import { ConvertlyError } from "./errors.js";
+import { createAiClient } from "./ai.js";
+import { createLibraryClient } from "./library.js";
 import { appendInput, appendPrimitive, appendSingleInput, toBlob } from "./internal/form.js";
 import { createStorageClient } from "./storage.js";
 import { createVideoStreamsClient } from "./video-streams.js";
@@ -50,6 +52,8 @@ export class Convertly {
         this.baseUrl = (options.baseUrl ?? defaultBaseUrl).replace(/\/$/, "");
         this.fetcher = options.fetch ?? fetch;
         this.storage = createStorageClient(this.request.bind(this), this.fetcher);
+        this.library = createLibraryClient(this.request.bind(this));
+        this.ai = createAiClient(this.request.bind(this));
         this.video = { streams: createVideoStreamsClient(this.request.bind(this)) };
     }
     async convert(options) {
